@@ -1,0 +1,38 @@
+{
+  "name": "my-agent-capture",
+  "version": "1.0.0",
+  "description": "MAC - My Agent Capture: 不動産エージェント向け物件資料自動キャプチャシステム",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "setup": "node scripts/auto-install.js",
+    "setup:env": "node scripts/write-env.js --init",
+    "setup:drive": "node scripts/setup-drive-folders.js",
+    "setup:sheets": "node scripts/setup-sheets.js",
+    "setup:check": "node scripts/setup-check.js",
+    "setup:verify": "node scripts/verify-completion.js",
+    "setup:richmenu": "node scripts/setup-line-richmenu.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@line/bot-sdk": "^9.3.0",
+    "axios": "^1.6.7",
+    "date-fns": "^3.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.18.2",
+    "googleapis": "^144.0.0",
+    "handlebars": "^4.7.8",
+    "puppeteer": "^22.4.0",
+    "winston": "^3.12.0",
+    "uuid": "^9.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.25",
+    "@types/uuid": "^9.0.7",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.4.2"
+  }
+}

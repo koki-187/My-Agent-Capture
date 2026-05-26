@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>物件概要書 [Premium] - {{caseId}}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Hiragino Mincho ProN', 'Yu Mincho', 'MS Mincho', serif;
+    font-size: 11px;
+    color: #1a1a1a;
+    background: #fff;
+    padding: 20mm 15mm;
+    width: 210mm;
+    min-height: 297mm;
+  }
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    border-bottom: 2px solid #1a1a1a;
+    padding-bottom: 12px;
+    margin-bottom: 18px;
+  }
+  .header-left h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: 6px;
+  }
+  .header-left .subtitle {
+    font-size: 10px;
+    color: #666;
+    letter-spacing: 3px;
+    margin-top: 4px;
+  }
+  .header-right {
+    text-align: right;
+    font-size: 10px;
+    color: #444;
+    line-height: 1.8;
+    font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif;
+  }
+  .header-right .company {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: 1px;
+  }
+  .gold-line {
+    height: 3px;
+    background: linear-gradient(to right, #b8960c, #e8d48b, #b8960c);
+    margin: -2px 0 16px 0;
+  }
+  .property-name-box {
+    text-align: center;
+    padding: 14px;
+    margin-bottom: 16px;
+    border: 1px solid #c8a415;
+    background: linear-gradient(135deg, #fffdf0, #fff9e0);
+  }
+  .property-name-box .name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1a1a1a;
+    letter-spacing: 2px;
+  }
+  .property-name-box .type-badge {
+    display: inline-block;
+    background: #1a1a1a;
+    color: #e8d48b;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+    font-size: 10px;
+    padding: 3px 10px;
+    border-radius: 2px;
+    margin-left: 8px;
+    letter-spacing: 1px;
+    vertical-align: middle;
+  }
+  .section {
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    color: #1a1a1a;
+    border-bottom: 1px solid #c8a415;
+    padding-bottom: 4px;
+    margin-bottom: 6px;
+    letter-spacing: 2px;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10.5px;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+  }
+  table td {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    vertical-align: top;
+  }
+  table td.label {
+    background: #f5f5f0;
+    font-weight: 600;
+    color: #333;
+    width: 26%;
+    white-space: nowrap;
+  }
+  table td.value {
+    color: #1a1a1a;
+    width: 24%;
+  }
+  .price-highlight {
+    font-size: 16px;
+    font-weight: 700;
+    color: #8b0000;
+    font-family: 'Hiragino Mincho ProN', serif;
+  }
+  .notes-box {
+    border: 1px solid #ddd;
+    padding: 10px;
+    min-height: 40px;
+    font-size: 10.5px;
+    color: #333;
+    background: #fafaf8;
+    white-space: pre-wrap;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+  }
+  .footer {
+    margin-top: 20px;
+    border-top: 1px solid #ccc;
+    padding-top: 8px;
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: #888;
+    font-family: 'Hiragino Kaku Gothic ProN', sans-serif;
+  }
+  .drive-link {
+    font-size: 9px;
+    color: #666;
+    word-break: break-all;
+    font-family: monospace;
+  }
+  .case-id {
+    font-size: 9px;
+    color: #999;
+    font-family: monospace;
+  }
+  @media print {
+    body { padding: 15mm 12mm; }
+    @page { size: A4; margin: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>物件概要書</h1>
+    <div class="subtitle">PROPERTY OVERVIEW SHEET</div>
+  </div>
+  <div class="header-right">
+    <div class="company">{{companyName}}</div>
+    <div>担当: {{agentName}}</div>
+    <div>作成日: {{generatedDate}}</div>
+    <div class="case-id">{{caseId}}</div>
+  </div>
+</div>
+<div class="gold-line"></div>
+
+<div class="property-name-box">
+  <span class="name">{{propertyName}}</span>
+  {{#if propertyType}}<span class="type-badge">{{propertyType}}</span>{{/if}}
+</div>
+
+<div class="section">
+  <div class="section-title">基 本 情 報</div>
+  <table>
+    <tr>
+      <td class="label">所在地</td>
+      <td class="value" colspan="3">{{address}}</td>
+    </tr>
+    <tr>
+      <td class="label">エリア</td>
+      <td class="value">{{area}}</td>
+      <td class="label">最寄り駅</td>
+      <td class="value">{{nearestStation}}{{#if walkMinutes}} 徒歩{{walkMinutes}}分{{/if}}</td>
+    </tr>
+    <tr>
+      <td class="label">物件種別</td>
+      <td class="value">{{propertyType}}</td>
+      <td class="label">情報源</td>
+      <td class="value">{{infoSource}}</td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">価 格 情 報</div>
+  <table>
+    <tr>
+      <td class="label">売出価格</td>
+      <td class="value"><span class="price-highlight">{{#if priceMlanEn}}{{priceMlanEn}}万円{{else}}応談{{/if}}</span></td>
+      <td class="label">消費税</td>
+      <td class="value">{{taxCategory}}</td>
+    </tr>
+    <tr>
+      <td class="label">価格条件</td>
+      <td class="value">{{priceCondition}}</td>
+      <td class="label">坪単価</td>
+      <td class="value">{{#if tsuboPrice}}{{tsuboPrice}}万円/坪{{/if}}{{#if tsuboPriceType}} ({{tsuboPriceType}}){{/if}}</td>
+    </tr>
+    {{#if currentRentYen}}
+    <tr>
+      <td class="label">現況賃料</td>
+      <td class="value">{{currentRentYen}}万円/月</td>
+      <td class="label">表面利回り</td>
+      <td class="value">{{#if grossYield}}{{grossYield}}%{{/if}}</td>
+    </tr>
+    {{/if}}
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-title">土地・建物情報</div>
+  <table>
+    <tr>
+      <td class="label">土地面積</td>
+      <td class="value">{{#if landAreaM2}}{{landAreaM2}}㎡{{/if}}</td>
+      <td class="label">建物面積</td>
+      <td class="value">{{#if buildingAreaM2}}{{buildingAreaM2}}㎡{{/if}}</td>
+    </tr>
+    <tr>
+      <td class="label">用途地域</td>
+      <td class="value">{{zoningUse}}</td>
+      <td class="label">建蔽率/容積率</td>
+      <td class="value">{{#if coverageRatio}}{{coverageRatio}}%{{/if}}{{#if floorAreaRatio}} / {{floorAreaRatio}}%{{/if}}</td>
+    </tr>
+  </table>
+</div>
+
+{{#if notes}}
+<div class="section">
+  <div class="section-title">備 考</div>
+  <div class="notes-box">{{notes}}</div>
+</div>
+{{/if}}
+
+{{#if driveFolderUrl}}
+<div class="section">
+  <div class="section-title">資 料 フ ォ ル ダ</div>
+  <div style="padding: 4px 10px;">
+    <a class="drive-link" href="{{driveFolderUrl}}">{{driveFolderUrl}}</a>
+  </div>
+</div>
+{{/if}}
+
+<div class="footer">
+  <div>本概要書は参考資料です。詳細は現地確認および登記簿等でご確認ください。</div>
+  <div>MAC - My Agent Capture</div>
+</div>
+
+</body>
+</html>
