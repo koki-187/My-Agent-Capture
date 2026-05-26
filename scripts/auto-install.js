@@ -155,10 +155,17 @@ async function main() {
     log('手動で npm run setup:drive を実行してください。');
   }
 
-  // Step 6: LINE Rich Menu (オプション)
-  header('Step 6: LINE Rich Menu の設定 (オプション)');
-  info('LINE Rich Menu のセットアップをスキップします。');
-  info('後から npm run setup:richmenu で設定できます。');
+  // Step 6: LINE Rich Menu
+  header('Step 6: LINE Rich Menu の設定');
+  try {
+    info('Rich Menu 画像を生成中...');
+    await runScript('./generate-richmenu-image');
+    info('Rich Menu をLINEに登録中...');
+    await runScript('./setup-line-richmenu');
+  } catch (e) {
+    warn(`Rich Menu 設定をスキップしました: ${e.message}`);
+    info('後から npm run setup:richmenu で設定できます。');
+  }
 
   // Step 7: 完了確認
   header('Step 7: セットアップ完了確認');

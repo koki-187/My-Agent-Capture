@@ -114,6 +114,106 @@ async function formatHeaderRow(sheets, spreadsheetId, sheetId, columnCount) {
   });
 }
 
+async function setColumnWidths(sheets, spreadsheetId, sheetId) {
+  // Column widths for 案件表_台帳 (0-indexed)
+  const widths = [
+    { col: 0, width: 90 },   // A: 受付日
+    { col: 1, width: 160 },  // B: 案件ID
+    { col: 2, width: 200 },  // C: 物件名
+    { col: 3, width: 120 },  // D: 種別
+    { col: 4, width: 100 },  // E: エリア
+    { col: 5, width: 220 },  // F: 所在地
+    { col: 6, width: 100 },  // G: 金額_万円
+    { col: 7, width: 130 },  // H: 市場坪単価_万円
+    { col: 8, width: 90 },   // I: 市場比較
+    { col: 9, width: 110 },  // J: 金額_消費税
+    { col: 10, width: 110 }, // K: 金額_条件
+    { col: 11, width: 110 }, // L: 土地面積_m2
+    { col: 12, width: 110 }, // M: 建物面積_m2
+    { col: 13, width: 160 }, // N: 最寄り駅
+    { col: 14, width: 80 },  // O: 徒歩_分
+    { col: 15, width: 150 }, // P: 用途地域_区分
+    { col: 16, width: 90 },  // Q: 建蔽率_%
+    { col: 17, width: 90 },  // R: 容積率_%
+    { col: 18, width: 110 }, // S: 坪単価_万円
+    { col: 19, width: 100 }, // T: 坪単価_種別
+    { col: 20, width: 110 }, // U: 現況賃料_月
+    { col: 21, width: 100 }, // V: 表面利回り_%
+    { col: 22, width: 200 }, // W: 備考
+    { col: 23, width: 240 }, // X: DriveフォルダURL
+    { col: 24, width: 100 }, // Y: 案件ステータス
+    { col: 25, width: 80 },  // Z: 情報源
+    { col: 26, width: 240 }, // AA: 概要書PDF_URL
+    { col: 27, width: 240 }, // AB: 元ファイルURL
+  ];
+
+  const requests = widths.map(({ col, width }) => ({
+    updateDimensionProperties: {
+      range: {
+        sheetId,
+        dimension: 'COLUMNS',
+        startIndex: col,
+        endIndex: col + 1,
+      },
+      properties: { pixelSize: width },
+      fields: 'pixelSize',
+    },
+  }));
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: { requests },
+  });
+  console.log('  ✓ 列幅設定完了');
+}
+
+async function addDropdownValidation(sheets, spreadsheetId, sheetId) {
+  const PROPERTY_TYPES = [
+    '戸建て', '古家あり', '低層マンション', '一棟レジデンス',
+    '一棟ビル', '空き地', 'ロードサイド付き使用地', '中古マンション',
+  ];
+  const STATUSES = ['新規', '交渉中', '販売承認中', '成約', '見送り', '停止'];
+
+  const makeDropdown = (values) => ({
+    condition: {
+      type: 'ONE_OF_LIST',
+      values: values.map(v => ({ userEnteredValue: v })),
+    },
+    showCustomUi: true,
+    strict: false,
+  });
+
+  const requests = [
+    // 種別 (列D = index 3)
+    {
+      setDataValidation: {
+        range: { sheetId, startRowIndex: 1, endRowIndex: 10000, startColumnIndex: 3, endColumnIndex: 4 },
+        rule: makeDropdown(PROPERTY_TYPES),
+      },
+    },
+    // 案件ステータス (列Y = index 24)
+    {
+      setDataValidation: {
+        range: { sheetId, startRowIndex: 1, endRowIndex: 10000, startColumnIndex: 24, endColumnIndex: 25 },
+        rule: makeDropdown(STATUSES),
+      },
+    },
+    // 情報源 (列Z = index 25)
+    {
+      setDataValidation: {
+        range: { sheetId, startRowIndex: 1, endRowIndex: 10000, startColumnIndex: 25, endColumnIndex: 26 },
+        rule: makeDropdown(['紹介', '仲介', '買取', 'LINE', '自社']),
+      },
+    },
+  ];
+
+  await sheets.spreadsheets.batchUpdate({
+    spreadsheetId,
+    requestBody: { requests },
+  });
+  console.log('  ✓ ドロップダウン検証設定完了');
+}
+
 async function main() {
   const spreadsheetId = process.env.GOOGLE_SPREADSHEET_ID;
   if (!spreadsheetId) {
@@ -131,6 +231,8 @@ async function main() {
   const ledgerSheetId = await ensureSheet(sheets, spreadsheetId, '案件表_台帳');
   await writeHeaderIfEmpty(sheets, spreadsheetId, '案件表_台帳', LEDGER_HEADERS);
   await formatHeaderRow(sheets, spreadsheetId, ledgerSheetId, LEDGER_HEADERS.length);
+  await setColumnWidths(sheets, spreadsheetId, ledgerSheetId);
+  await addDropdownValidation(sheets, spreadsheetId, ledgerSheetId);
 
   // 種別シート
   console.log('\n■ 物件種別シート:');
@@ -172,6 +274,7 @@ async function main() {
 
   console.log('\n✓ Spreadsheet の初期化が完了しました');
   console.log(`  URL: https://docs.google.com/spreadsheets/d/${spreadsheetId}/edit`);
+  console.log('  設定内容: ヘッダー・列幅・ドロップダウン・フォーマット');
 }
 
 if (require.main === module) {

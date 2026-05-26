@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { width: 2500px; height: 1686px; overflow: hidden; background: #1a1a2e; font-family: 'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif; }
+.grid { display: grid; grid-template-columns: 1250px 1250px; grid-template-rows: 843px 843px; width: 2500px; height: 1686px; }
+.cell {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border: 2px solid rgba(255,255,255,0.15); cursor: pointer; transition: all 0.2s;
+  position: relative; overflow: hidden;
+}
+.cell::before {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 100%);
+}
+.cell-send { background: linear-gradient(135deg, #0f3460 0%, #16213e 100%); grid-column: 1; grid-row: 1; }
+.cell-list { background: linear-gradient(135deg, #1a4a6e 0%, #0d2137 100%); grid-column: 2; grid-row: 1; }
+.cell-bottom { grid-row: 2; display: flex; flex-direction: row; grid-column: 1 / 3; }
+.cell-help { background: linear-gradient(135deg, #2d2d6e 0%, #1a1a3e 100%); flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.15); }
+.cell-sheet { background: linear-gradient(135deg, #2d5a27 0%, #1a3317 100%); flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.15); }
+.cell-drive { background: linear-gradient(135deg, #6e2d2d 0%, #3e1a1a 100%); flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px solid rgba(255,255,255,0.15); }
+.icon { font-size: 120px; margin-bottom: 24px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); }
+.label { font-size: 64px; font-weight: 700; color: #ffffff; letter-spacing: 4px; text-shadow: 0 2px 8px rgba(0,0,0,0.6); text-align: center; }
+.sublabel { font-size: 36px; color: rgba(255,255,255,0.65); margin-top: 12px; letter-spacing: 2px; }
+.badge { position: absolute; top: 40px; right: 40px; background: #e74c3c; color: white; font-size: 28px; padding: 8px 20px; border-radius: 30px; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="cell cell-send">
+    <span class="badge">メイン</span>
+    <div class="icon">📤</div>
+    <div class="label">物件資料を送る</div>
+    <div class="sublabel">PDF・画像に対応</div>
+  </div>
+  <div class="cell cell-list">
+    <div class="icon">📋</div>
+    <div class="label">案件一覧</div>
+    <div class="sublabel">登録済み物件を確認</div>
+  </div>
+  <div class="cell-bottom">
+    <div class="cell-help">
+      <div class="icon">❓</div>
+      <div class="label">使い方</div>
+    </div>
+    <div class="cell-sheet">
+      <div class="icon">📊</div>
+      <div class="label">スプレッドシート</div>
+      <div class="sublabel">案件表を開く</div>
+    </div>
+    <div class="cell-drive">
+      <div class="icon">📁</div>
+      <div class="label">Driveフォルダ</div>
+      <div class="sublabel">資料を開く</div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

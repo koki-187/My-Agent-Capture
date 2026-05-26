@@ -171,6 +171,22 @@ export async function appendListing(data: Partial<PropertyListing>, ocr?: OcrExt
   const match = updatedRange.match(/(\d+)$/);
   const rowNum = match ? parseInt(match[1], 10) : -1;
 
+  // 種別シートにも同期
+  const typeForSheet = data.propertyType as string;
+  if (typeForSheet && TYPE_TO_SHEET[typeForSheet]) {
+    appendToTypeSheet(typeForSheet, caseId, {
+      acceptedAt: nowDate,
+      propertyName: data.propertyName || ocr?.propertyName || '',
+      address: data.address || ocr?.address || '',
+      price: row[COL.PRICE - 1] as string,
+      landArea: row[COL.LAND_M2 - 1] as string,
+      station: data.nearestStation || ocr?.nearestStation || '',
+      walk: row[COL.WALK_MIN - 1] as string,
+      overviewPdfUrl: data.overviewPdfUrl || '',
+      caseStatus: data.caseStatus || '新規',
+    }).catch((e: any) => logger.warn(`種別シート書き込みスキップ: ${e.message}`));
+  }
+
   logger.info(`台帳に追加: ${caseId} (行${rowNum})`);
   return { rowNum, caseId };
 }
@@ -213,6 +229,82 @@ export async function writeLog(log: ProcessLog): Promise<void> {
         log.fileName,
       ]],
     },
+  });
+}
+
+export async function appendToTypeSheet(
+  propertyType: string,
+  caseId: string,
+  data: {
+    acceptedAt: string;
+    propertyName: string;
+    address: string;
+    price: string;
+    landArea: string;
+    station: string;
+    walk: string;
+    overviewPdfUrl?: string;
+    caseStatus: string;
+  }
+): Promise<void> {
+  const sheetName = TYPE_TO_SHEET[propertyType];
+  if (!sheetName) {
+    logger.debug(`種別シートなし: ${propertyType}`);
+    return;
+  }
+
+  const sheets = getSheetsClient();
+  const row = new Array(TYPE_SHEET_TOTAL_COLUMNS).fill('');
+  row[TYPE_SHEET_COL.ACCEPTED_AT - 1] = data.acceptedAt;
+  row[TYPE_SHEET_COL.CASE_ID - 1] = caseId;
+  row[TYPE_SHEET_COL.NAME - 1] = data.propertyName;
+  row[TYPE_SHEET_COL.ADDRESS - 1] = data.address;
+  row[TYPE_SHEET_COL.PRICE - 1] = data.price;
+  row[TYPE_SHEET_COL.LAND_AREA - 1] = data.landArea;
+  row[TYPE_SHEET_COL.STATION - 1] = data.station;
+  row[TYPE_SHEET_COL.WALK - 1] = data.walk;
+  row[TYPE_SHEET_COL.OVERVIEW_PDF - 1] = data.overviewPdfUrl || '';
+  row[TYPE_SHEET_COL.STATUS - 1] = data.caseStatus;
+
+  await sheets.spreadsheets.values.append({
+    spreadsheetId: ENV.SPREADSHEET_ID,
+    range: `${sheetName}!A:${columnToLetter(TYPE_SHEET_TOTAL_COLUMNS)}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [row] },
+  });
+
+  logger.info(`種別シートに追加: ${sheetName} / ${caseId}`);
+}
+
+export async function updateTypeSheetCell(
+  propertyType: string,
+  caseId: string,
+  colNum: number,
+  value: string
+): Promise<void> {
+  const sheetName = TYPE_TO_SHEET[propertyType];
+  if (!sheetName) return;
+
+  const sheets = getSheetsClient();
+  // Find the row with this caseId
+  const res = await sheets.spreadsheets.values.get({
+    spreadsheetId: ENV.SPREADSHEET_ID,
+    range: `${sheetName}!B:B`,
+    valueRenderOption: 'FORMATTED_VALUE',
+  });
+
+  const rows = res.data.values || [];
+  const rowIndex = rows.findIndex(r => r[0] === caseId);
+  if (rowIndex < 0) return;
+
+  // rowIndex 0 = header row, rowIndex 1 = first data row → sheetRow = rowIndex + 1 (1-based)
+  const sheetRow = rowIndex + 1;
+
+  await sheets.spreadsheets.values.update({
+    spreadsheetId: ENV.SPREADSHEET_ID,
+    range: `${sheetName}!${columnToLetter(colNum)}${sheetRow}`,
+    valueInputOption: 'USER_ENTERED',
+    requestBody: { values: [[value]] },
   });
 }
 

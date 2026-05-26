@@ -13,7 +13,8 @@
     "setup:sheets": "node scripts/setup-sheets.js",
     "setup:check": "node scripts/setup-check.js",
     "setup:verify": "node scripts/verify-completion.js",
-    "setup:richmenu": "node scripts/setup-line-richmenu.js"
+    "setup:richmenu": "node scripts/setup-line-richmenu.js",
+    "setup:richmenu:image": "node scripts/generate-richmenu-image.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

@@ -4,6 +4,29 @@
 require('dotenv').config({ path: require('path').resolve(process.cwd(), '.env'), override: true });
 
 const https = require('https');
+const path = require('path');
+const fs = require('fs');
+
+function uploadRichMenuImage(richMenuId, imageBuffer, token) {
+  return new Promise((resolve) => {
+    const options = {
+      hostname: 'api-data.line.me',
+      path: `/v2/bot/richmenu/${richMenuId}/content`,
+      method: 'POST',
+      headers: {
+        'Content-Type': 'image/png',
+        'Authorization': `Bearer ${token}`,
+        'Content-Length': imageBuffer.length,
+      },
+    };
+    const req = https.request(options, (res) => {
+      resolve(res.statusCode === 200);
+    });
+    req.on('error', () => resolve(false));
+    req.write(imageBuffer);
+    req.end();
+  });
+}
 
 function linePost(endpoint, body, token) {
   return new Promise((resolve, reject) => {
@@ -165,6 +188,20 @@ async function main() {
   const richMenuId = createRes.data.richMenuId;
   console.log(`✓ リッチメニュー作成: ${richMenuId}`);
 
+  // 画像をアップロード
+  const imagePath = path.resolve(process.cwd(), 'assets', 'richmenu.png');
+  if (fs.existsSync(imagePath)) {
+    console.log('Rich Menu 画像をアップロード中...');
+    const imageData = fs.readFileSync(imagePath);
+    const uploaded = await uploadRichMenuImage(richMenuId, imageData, token);
+    if (uploaded) {
+      console.log('✓ Rich Menu 画像アップロード完了');
+    }
+  } else {
+    console.log('⚠ 画像ファイルが見つかりません。先に npm run setup:richmenu:image を実行してください。');
+    console.log(`  期待パス: ${imagePath}`);
+  }
+
   // デフォルトに設定
   console.log('デフォルトリッチメニューに設定中...');
   const setDefaultRes = await new Promise((resolve, reject) => {
@@ -190,10 +227,6 @@ async function main() {
 
   console.log(`
 ✓ LINE Rich Menu の設定が完了しました！
-
-注意: リッチメニューの画像は LINE Official Account Manager から
-別途アップロードしてください。
-  URL: https://manager.line.biz/
 
 リッチメニューID: ${richMenuId}
 `);
