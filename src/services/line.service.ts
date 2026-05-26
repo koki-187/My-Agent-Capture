@@ -69,20 +69,98 @@ export function buildProcessingResult(
   folderUrl: string,
   overviewUrl?: string
 ): messagingApi.Message[] {
-  const lines = [
-    `✅ 物件情報を登録しました`,
-    ``,
-    `📋 案件ID: ${caseId}`,
-    `🏠 物件名: ${propertyName || '(不明)'}`,
-    ``,
-    `📁 Drive: ${folderUrl}`,
-  ];
+  const messages: messagingApi.Message[] = [];
 
-  if (overviewUrl) {
-    lines.push(`📄 概要書: ${overviewUrl}`);
-  }
+  // Main result as Flex Message
+  const flexMessage: messagingApi.FlexMessage = {
+    type: 'flex',
+    altText: `✅ 物件登録完了: ${caseId}`,
+    contents: {
+      type: 'bubble',
+      header: {
+        type: 'box',
+        layout: 'vertical',
+        backgroundColor: '#1a3a6e',
+        contents: [
+          {
+            type: 'text',
+            text: '✅ 物件登録完了',
+            color: '#ffffff',
+            weight: 'bold',
+            size: 'lg',
+          },
+        ],
+      },
+      body: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'md',
+        contents: [
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: '案件ID', color: '#888888', size: 'sm', flex: 2 },
+              { type: 'text', text: caseId, color: '#111111', size: 'sm', flex: 5, weight: 'bold' },
+            ],
+          },
+          {
+            type: 'box',
+            layout: 'horizontal',
+            contents: [
+              { type: 'text', text: '物件名', color: '#888888', size: 'sm', flex: 2 },
+              { type: 'text', text: propertyName || '(未取得)', color: '#111111', size: 'sm', flex: 5, wrap: true },
+            ],
+          },
+          { type: 'separator' },
+          {
+            type: 'text',
+            text: '自動処理完了:',
+            color: '#555555',
+            size: 'xs',
+          },
+          {
+            type: 'text',
+            text: '✓ スプレッドシート登録\n✓ Driveフォルダ作成\n✓ 物件概要書PDF生成',
+            color: '#2d7a2d',
+            size: 'xs',
+            wrap: true,
+          },
+        ],
+      },
+      footer: {
+        type: 'box',
+        layout: 'vertical',
+        spacing: 'sm',
+        contents: [
+          {
+            type: 'button',
+            action: {
+              type: 'uri',
+              label: '📁 Driveフォルダを開く',
+              uri: folderUrl,
+            },
+            style: 'primary',
+            color: '#1a3a6e',
+            height: 'sm',
+          },
+          ...(overviewUrl ? [{
+            type: 'button' as const,
+            action: {
+              type: 'uri' as const,
+              label: '📄 物件概要書PDFを開く',
+              uri: overviewUrl,
+            },
+            style: 'secondary' as const,
+            height: 'sm' as const,
+          }] : []),
+        ],
+      },
+    },
+  };
 
-  return [{ type: 'text', text: lines.join('\n') }];
+  messages.push(flexMessage);
+  return messages;
 }
 
 export function buildErrorMessage(errorType: string): messagingApi.Message {

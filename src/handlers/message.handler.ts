@@ -1,5 +1,5 @@
 import { extractFromFile } from '../services/gemini.service';
-import { appendListing, updateCells, writeLog } from '../services/sheets.service';
+import { appendListing, updateCells, writeLog, getAllListings, getListingByCaseId } from '../services/sheets.service';
 import { uploadPropertyDocument, uploadFile, getPropertyFolder } from '../services/drive.service';
 import { generateOverviewPdf, getOverviewFileName } from '../services/generator.service';
 import { researchMissingData } from '../services/research.service';
@@ -127,10 +127,10 @@ export async function handlePropertyDocument(event: MessageEvent): Promise<void>
 }
 
 export async function handleTextMessage(event: MessageEvent): Promise<void> {
-  const text = event.text || '';
+  const text = (event.text || '').trim();
   const { replyToken } = event;
 
-  if (text.includes('ヘルプ') || text.includes('help') || text.includes('使い方')) {
+  if (text.includes('ヘルプ') || text.includes('help') || text.toLowerCase().includes('help') || text.includes('使い方')) {
     const helpText = [
       '📋 MAC - My Agent Capture 使い方',
       '',
@@ -142,9 +142,94 @@ export async function handleTextMessage(event: MessageEvent): Promise<void> {
       '② Google スプレッドシートに登録',
       '③ Google Driveに資料を保存',
       '④ 物件概要書PDFを自動生成',
+      '',
+      '【コマンド一覧】',
+      '「案件一覧」→ 最新10件を表示',
+      '「案件 MAC-XXXXXXXX-XXXX」→ 個別案件を検索',
     ].join('\n');
     await replyText(replyToken, helpText);
-  } else {
-    await replyText(replyToken, '物件資料（PDF/画像）を送信してください。\n「ヘルプ」と送信すると使い方を確認できます。');
+    return;
+  }
+
+  if (text.includes('案件一覧') || text === '一覧') {
+    await handleCaseList(event);
+    return;
+  }
+
+  // 案件ID検索: "案件 MAC-20260527-0001" や "MAC-20260527-0001"
+  const caseIdMatch = text.match(/MAC-\d{8}-\d{4}/);
+  if (caseIdMatch) {
+    await handleCaseSearch(event, caseIdMatch[0]);
+    return;
+  }
+
+  await replyText(replyToken, '物件資料（PDF/画像）を送信してください。\n「ヘルプ」と送信すると使い方を確認できます。');
+}
+
+async function handleCaseList(event: MessageEvent): Promise<void> {
+  const { replyToken } = event;
+  try {
+    const listings = await getAllListings();
+    const recent = listings
+      .filter(l => l.caseId)
+      .slice(-10)
+      .reverse();
+
+    if (recent.length === 0) {
+      await replyText(replyToken, '登録済みの案件はありません。\n物件資料を送信して最初の案件を登録しましょう。');
+      return;
+    }
+
+    const lines = ['📋 最新案件一覧\n'];
+    recent.forEach((l, i) => {
+      const price = l.priceMlanEn ? `${l.priceMlanEn.toLocaleString()}万円` : '価格未定';
+      const status = l.caseStatus || '新規';
+      lines.push(`${i + 1}. ${l.caseId}`);
+      lines.push(`   ${l.propertyName || '(物件名未設定)'} [${l.propertyType || '種別不明'}]`);
+      lines.push(`   ${price} | ${status}`);
+      if (l.address) lines.push(`   📍 ${l.address}`);
+      lines.push('');
+    });
+    lines.push(`合計 ${listings.length} 件登録済み`);
+
+    await replyText(replyToken, lines.join('\n'));
+  } catch (e: any) {
+    logger.error(`案件一覧取得エラー: ${e.message}`);
+    await replyText(replyToken, '案件一覧の取得に失敗しました。');
+  }
+}
+
+async function handleCaseSearch(event: MessageEvent, caseId: string): Promise<void> {
+  const { replyToken } = event;
+  try {
+    const listing = await getListingByCaseId(caseId);
+    if (!listing) {
+      await replyText(replyToken, `案件 ${caseId} は見つかりませんでした。`);
+      return;
+    }
+
+    const lines = [
+      `🏠 ${listing.propertyName || '(物件名未設定)'}`,
+      `案件ID: ${listing.caseId}`,
+      `種別: ${listing.propertyType || '—'}`,
+      `所在地: ${listing.address || '—'}`,
+      `金額: ${listing.priceMlanEn ? listing.priceMlanEn.toLocaleString() + '万円' : '—'}`,
+      `土地: ${listing.landAreaM2 ? listing.landAreaM2 + '㎡' : '—'}`,
+      `建物: ${listing.buildingAreaM2 ? listing.buildingAreaM2 + '㎡' : '—'}`,
+      `最寄: ${listing.nearestStation || '—'}${listing.walkMinutes ? ' 徒歩' + listing.walkMinutes + '分' : ''}`,
+      `ステータス: ${listing.caseStatus || '新規'}`,
+    ];
+
+    if (listing.driveFolderUrl) {
+      lines.push(`📁 Drive: ${listing.driveFolderUrl}`);
+    }
+    if (listing.overviewPdfUrl) {
+      lines.push(`📄 概要書: ${listing.overviewPdfUrl}`);
+    }
+
+    await replyText(replyToken, lines.join('\n'));
+  } catch (e: any) {
+    logger.error(`案件検索エラー: ${e.message}`);
+    await replyText(replyToken, '案件の検索に失敗しました。');
   }
 }
